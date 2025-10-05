@@ -1,5 +1,16 @@
+import { Ionicons } from "@expo/vector-icons";
 import React from "react";
-import { FlatList, Text, View } from "react-native";
+import {
+  FlatList,
+  Image,
+  StyleSheet,
+  Text,
+  TextInput,
+  TouchableOpacity,
+  View,
+} from "react-native";
+import { SafeAreaView } from "react-native-safe-area-context";
+import { Checkbox } from "expo-checkbox";
 
 export default function Index() {
   const toDoData = [
@@ -24,22 +35,69 @@ export default function Index() {
     { id: 15, title: "Go to the park", completed: false },
   ];
   return (
-    <View
-      style={{
-        flex: 1,
-        justifyContent: "center",
-        alignItems: "center",
-      }}
-    >
+    <SafeAreaView style={styles.container}>
+      <View style={styles.header}>
+        <TouchableOpacity
+          onPress={() => {
+            alert("Menu");
+          }}
+        >
+          <Ionicons name="menu" size={24} color={"#662222"} />
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => {}}>
+          <Image
+            source={{
+              uri: "https://i.ytimg.com/vi/XA_I_MtEhkc/maxresdefault.jpg",
+            }}
+            style={{ width: 40, height: 40, borderRadius: 20 }}
+          />
+        </TouchableOpacity>
+      </View>
+      <View style={styles.searchBar}>
+        <Ionicons name="search" size={24} color={"#662222"} />
+        <TextInput
+          placeholder="Search"
+          style={styles.searchInput}
+          clearButtonMode="always"
+        />
+      </View>
       <FlatList
         data={toDoData}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View>
+            <Checkbox />
             <Text>{item.title}</Text>
           </View>
         )}
       />
-    </View>
+    </SafeAreaView>
   );
 }
+
+const styles = StyleSheet.create({
+  container: {
+    flex: 1,
+    paddingHorizontal: 20,
+    backgroundColor: "#F5DAA7",
+  },
+  header: {
+    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
+  },
+  searchBar: {
+    backgroundColor: "#F5DAA7",
+    flexDirection: "row",
+    padding: 16,
+    borderRadius: 10,
+    gap: 10,
+    marginBottom: 20,
+  },
+  searchInput: {
+    flex: 1,
+    fontSize: 16,
+    color: "#333",
+  },
+});
