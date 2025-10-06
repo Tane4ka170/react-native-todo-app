@@ -3,6 +3,7 @@ import React from "react";
 import {
   FlatList,
   Image,
+  KeyboardAvoidingView,
   StyleSheet,
   Text,
   TextInput,
@@ -42,7 +43,7 @@ export default function Index() {
             alert("Menu");
           }}
         >
-          <Ionicons name="menu" size={24} color={"#662222"} />
+          <Ionicons name="menu" size={24} color={"#FFA4A4"} />
         </TouchableOpacity>
         <TouchableOpacity onPress={() => {}}>
           <Image
@@ -54,7 +55,7 @@ export default function Index() {
         </TouchableOpacity>
       </View>
       <View style={styles.searchBar}>
-        <Ionicons name="search" size={24} color={"#662222"} />
+        <Ionicons name="search" size={24} color={"#FFA4A4"} />
         <TextInput
           placeholder="Search"
           style={styles.searchInput}
@@ -65,12 +66,37 @@ export default function Index() {
         data={toDoData}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
-          <View>
-            <Checkbox />
-            <Text>{item.title}</Text>
+          <View style={styles.toDoContainer}>
+            <View style={styles.toDoInfoContainer}>
+              <Checkbox
+                value={item.completed}
+                color={item.completed ? "#FFA4A4" : "#BADFDB"}
+              />
+              <Text
+                style={
+                  (styles.toDoText,
+                  item.completed && { textDecorationLine: "line-through" })
+                }
+              >
+                {item.title}
+              </Text>
+            </View>
+            <TouchableOpacity onPress={() => alert("Deleted" + item.id)}>
+              <Ionicons name="trash" color={"#FFA4A4"} size={24} />
+            </TouchableOpacity>
           </View>
         )}
       />
+      <KeyboardAvoidingView
+        style={styles.footer}
+        behavior="padding"
+        keyboardVerticalOffset={10}
+      >
+        <TextInput placeholder="Create new task" style={styles.addNewToDo} />
+        <TouchableOpacity onPress={() => {}} style={styles.addButton}>
+          <Ionicons name="add" color={"#FCF9EA"} size={34} />
+        </TouchableOpacity>
+      </KeyboardAvoidingView>
     </SafeAreaView>
   );
 }
@@ -79,7 +105,7 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    backgroundColor: "#F5DAA7",
+    backgroundColor: "#BADFDB",
   },
   header: {
     marginBottom: 20,
@@ -88,7 +114,7 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   searchBar: {
-    backgroundColor: "#F5DAA7",
+    backgroundColor: "#FCF9EA",
     flexDirection: "row",
     padding: 16,
     borderRadius: 10,
@@ -99,5 +125,41 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 16,
     color: "#333",
+  },
+  toDoContainer: {
+    backgroundColor: "#FCF9EA",
+    padding: 16,
+    borderRadius: 10,
+    marginBottom: 10,
+    flexDirection: "row",
+    justifyContent: "space-between",
+  },
+  toDoInfoContainer: {
+    flexDirection: "row",
+    gap: 10,
+    alignItems: "center",
+  },
+  toDoText: {
+    fontSize: 16,
+    color: "#333",
+  },
+  addNewToDo: {
+    backgroundColor: "#FCF9EA",
+    flex: 1,
+    padding: 16,
+    borderRadius: 10,
+    fontSize: 16,
+    color: "#333",
+  },
+  addButton: {
+    backgroundColor: "#BADFDB",
+    padding: 8,
+    borderRadius: 10,
+    marginLeft: 20,
+  },
+  footer: {
+    flexDirection: "row",
+    alignItems: "center",
+    justifyContent: "space-between",
   },
 });
