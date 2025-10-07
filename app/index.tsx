@@ -1,9 +1,11 @@
 import { Ionicons } from "@expo/vector-icons";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import {
   FlatList,
   Image,
+  Keyboard,
   KeyboardAvoidingView,
+  Platform,
   StyleSheet,
   Text,
   TextInput,
@@ -12,6 +14,13 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { Checkbox } from "expo-checkbox";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+type ToDoType = {
+  id: number;
+  title: string;
+  completed: boolean;
+};
 
 export default function Index() {
   const toDoData = [
@@ -35,6 +44,86 @@ export default function Index() {
     { id: 14, title: "Go to the museum", completed: false },
     { id: 15, title: "Go to the park", completed: false },
   ];
+  const [toDos, setToDos] = useState<ToDoType[]>([]);
+  const [toDoText, setToDoText] = useState<string>("");
+  const [searchText, setSearchText] = useState<string>("");
+  const [oldToDos, setOldToDos] = useState<ToDoType[]>([]);
+
+  const addNewToDo = async () => {
+    try {
+      const newToDo: ToDoType = {
+        id: toDos.length + 1,
+        title: toDoText,
+        completed: false,
+      };
+      toDos.push(newToDo);
+      setToDos(toDos);
+      setOldToDos(toDos);
+      await AsyncStorage.setItem("toDos", JSON.stringify(toDos));
+      setToDoText("");
+      Keyboard.dismiss();
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  useEffect(() => {
+    const getToDos = async () => {
+      try {
+        const toDos = await AsyncStorage.getItem("toDos");
+        if (toDos !== null) {
+          setToDos(JSON.parse(toDos));
+          setOldToDos(JSON.parse(toDos));
+        }
+      } catch (error) {
+        console.log(error);
+      }
+    };
+    getToDos();
+  }, []);
+
+  const deleteToDo = async (id: number) => {
+    try {
+      const newToDos = toDos.filter((toDo) => toDo.id !== id);
+      await AsyncStorage.setItem("toDos", JSON.stringify(newToDos));
+      setToDos(newToDos);
+      setOldToDos(newToDos);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const handleDone = async (id: number) => {
+    try {
+      const newToDos = toDos.map((toDo) => {
+        if (toDo.id === id) {
+          toDo.completed = !toDo.completed;
+        }
+        return toDo;
+      });
+      await AsyncStorage.setItem("toDos", JSON.stringify(newToDos));
+      setToDos(newToDos);
+      setOldToDos(newToDos);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
+  const onSearch = (query: string) => {
+    if ((query = "")) {
+      setToDos(oldToDos);
+    } else {
+      const filteredToDos = toDos.filter((toDo) =>
+        toDo.title.toLowerCase().includes(query.toLowerCase())
+      );
+      setToDos(filteredToDos);
+    }
+  };
+
+  useEffect(() => {
+    onSearch(searchText);
+  }, [searchText]);
+
   return (
     <SafeAreaView style={styles.container}>
       <View style={styles.header}>
@@ -60,10 +149,12 @@ export default function Index() {
           placeholder="Search"
           style={styles.searchInput}
           clearButtonMode="always"
+          value={searchText}
+          onChangeText={(text) => setSearchText(text)}
         />
       </View>
       <FlatList
-        data={toDoData}
+        data={[...toDos].reverse()}
         keyExtractor={(item) => item.id.toString()}
         renderItem={({ item }) => (
           <View style={styles.toDoContainer}>
@@ -71,6 +162,7 @@ export default function Index() {
               <Checkbox
                 value={item.completed}
                 color={item.completed ? "#FFA4A4" : "#BADFDB"}
+                onValueChange={() => handleDone(item.id)}
               />
               <Text
                 style={
@@ -81,7 +173,7 @@ export default function Index() {
                 {item.title}
               </Text>
             </View>
-            <TouchableOpacity onPress={() => alert("Deleted" + item.id)}>
+            <TouchableOpacity onPress={() => deleteToDo(item.id)}>
               <Ionicons name="trash" color={"#FFA4A4"} size={24} />
             </TouchableOpacity>
           </View>
@@ -92,8 +184,21 @@ export default function Index() {
         behavior="padding"
         keyboardVerticalOffset={10}
       >
-        <TextInput placeholder="Create new task" style={styles.addNewToDo} />
-        <TouchableOpacity onPress={() => {}} style={styles.addButton}>
+        <TextInput
+          placeholder="Create new task"
+          style={styles.addNewToDo}
+          onChangeText={(text) => {
+            setToDoText(text);
+          }}
+          value={toDoText}
+          autoCorrect={false}
+        />
+        <TouchableOpacity
+          onPress={() => {
+            addNewToDo();
+          }}
+          style={styles.addButton}
+        >
           <Ionicons name="add" color={"#FCF9EA"} size={34} />
         </TouchableOpacity>
       </KeyboardAvoidingView>
@@ -116,7 +221,9 @@ const styles = StyleSheet.create({
   searchBar: {
     backgroundColor: "#FCF9EA",
     flexDirection: "row",
-    padding: 16,
+    alignItems: "center",
+    paddingHorizontal: 16,
+    paddingVertical: Platform.OS === "ios" ? 16 : 8,
     borderRadius: 10,
     gap: 10,
     marginBottom: 20,
